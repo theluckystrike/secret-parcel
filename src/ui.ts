@@ -96,7 +96,7 @@ export class ProfilesModal extends ParcelModal {
  onOpen(): void {
   this.setTitle(`Saved export profiles (${PRO_LABEL})`);
   let name = ''; let prefix = ''; let folder = this.plugin.prefs.folder;
-  for (const [i, p] of this.plugin.prefs.profiles.entries()) new Setting(this.contentEl).setName(p.name).setDesc(`Prefix: ${p.prefix || '(no filter)'}; folder: ${p.folder}`).addButton(b => b.setButtonText('Export').onClick(() => { if (this.plugin.needsPro()) return; this.close(); this.plugin.openExport(false, p.prefix, p.folder); })).addButton(b => b.setButtonText('Remove').onClick(async () => { if (this.plugin.needsPro()) return; this.plugin.prefs.profiles.splice(i, 1); await this.plugin.saveSettings(); this.contentEl.empty(); this.onOpen(); }));
+  for (const p of this.plugin.prefs.profiles) new Setting(this.contentEl).setName(p.name).setDesc(`Prefix: ${p.prefix || '(no filter)'}; folder: ${p.folder}`).addButton(b => b.setButtonText('Export').onClick(() => { if (this.plugin.needsPro()) return; this.close(); this.plugin.openExport(false, p.prefix, p.folder); })).addButton(b => b.setButtonText('Remove').onClick(async () => { if (this.plugin.needsPro()) return; await this.plugin.removeProfile(p); if (this.closed) return; this.contentEl.empty(); this.onOpen(); }));
   new Setting(this.contentEl).setName('Profile name').addText(t => t.onChange(v => name = v));
   new Setting(this.contentEl).setName('ID prefix').addText(t => t.onChange(v => prefix = v));
   new Setting(this.contentEl).setName('Vault folder').addText(t => t.setValue(folder).onChange(v => folder = v));

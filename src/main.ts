@@ -2,7 +2,7 @@ import { Notice, Plugin, normalizePath, type Modal, type TFile } from 'obsidian'
 import type { SponsorsManager } from './license/index';
 import { createGitHubSponsors } from './sponsors-adapter';
 import { PRO_LABEL, SPONSORS, bindPro, isPro, resetPro } from './pro';
-import { DEFAULT_SETTINGS, SecretParcelSettingTab, normalizeSettings, type SecretParcelSettings } from './settings';
+import { DEFAULT_SETTINGS, SecretParcelSettingTab, normalizeSettings, type Profile, type SecretParcelSettings } from './settings';
 import { checkPassphrase, encrypt, decrypt, validatePayload, folderPath, fileStamp, MAX_FILE, compare, type Report, type Payload, type Storage } from './parcel';
 import { ExportModal, ParcelPicker, ProfilesModal, ImportPreview, TextReport, showReport } from './ui';
 export default class SecretParcelPlugin extends Plugin {
@@ -38,11 +38,17 @@ export default class SecretParcelPlugin extends Plugin {
   new ParcelPicker(this, files, comparison).open();
  }
  openProfiles(): void { if (!this.needsPro()) new ProfilesModal(this).open(); }
+ async removeProfile(profile: Profile): Promise<void> {
+  // Find the profile by identity. A second click before the redraw must not remove the next profile.
+  const i = this.prefs.profiles.indexOf(profile); if (i < 0) return;
+  this.prefs.profiles.splice(i, 1); await this.saveSettings();
+ }
  openPreview(payload: Payload): void { new ImportPreview(this, validatePayload(payload)).open(); }
  showResult(report: Report): void { showReport(this, report); }
  async compareCurrent(payload: Payload): Promise<void> {
   if (this.needsPro()) return;
-  const result = await compare(payload, this.storage);
+  let result: Awaited<ReturnType<typeof compare>>;
+  try { result = await compare(payload, this.storage); } catch { new Notice('Could not read the current keychain.'); return; }
   if (this.needsPro()) return;
   new TextReport(this, `Parcel comparison (${PRO_LABEL})`, { 'New IDs': result.newIds, 'Missing from parcel': result.missing, 'Changed IDs': result.changed, 'Unchanged IDs': result.unchanged }).open();
  }
@@ -70,11 +76,14 @@ export default class SecretParcelPlugin extends Plugin {
    if (backup) {
     // A new backup can reuse the path of a deleted tracked backup. Track each path once and never remove the new file.
     this.prefs.backups = [...this.prefs.backups.filter(p => p !== file.path), file.path]; await this.saveSettings();
-    while (this.prefs.backups.length > this.prefs.keep) {
-     const old = this.prefs.backups[0]!; const oldFile = this.app.vault.getFileByPath(old);
-     if (oldFile && oldFile !== file) await this.app.fileManager.trashFile(oldFile);
-     this.prefs.backups.shift(); await this.saveSettings();
+    // The new file is written. A failed removal keeps its path tracked for the next backup and does not fail this backup.
+    const excess = this.prefs.backups.slice(0, Math.max(0, this.prefs.backups.length - this.prefs.keep)); const kept: string[] = [];
+    for (const old of excess) {
+     const oldFile = this.app.vault.getFileByPath(old);
+     try { if (oldFile && oldFile !== file) await this.app.fileManager.trashFile(oldFile); } catch { kept.push(old); }
     }
+    this.prefs.backups = [...kept, ...this.prefs.backups.slice(excess.length)]; await this.saveSettings();
+    if (kept.length) new Notice(`Backup created. Could not remove ${kept.length} older tracked backup files. The next backup tries again.`);
    }
    return file;
   } finally { this.busy = false; }

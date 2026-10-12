@@ -40,7 +40,7 @@ Save a profile name, an ID prefix and an export folder. A profile helps you repe
 
 ### Dated encrypted backups (Pro)
 
-Run Create encrypted backup to select IDs and create a dated `backup-` parcel. Backups are manual. Enter a passphrase for each run. Set a retention limit from 1 to 100. After a new backup is written, older tracked backup files are removed with Obsidian's deletion preference. Ordinary exports and untracked parcel files are outside this cleanup. A moved or renamed backup is no longer found at its tracked path.
+Run Create encrypted backup to select IDs and create a dated `backup-` parcel. Backups are manual. Enter a passphrase for each run. Set a retention limit from 1 to 100. After a new backup is written, older tracked backup files are removed with Obsidian's deletion preference. If a removal fails, the new backup stays, the old path stays tracked, and the next backup tries the removal again. Ordinary exports and untracked parcel files are outside this cleanup. A moved or renamed backup is no longer found at its tracked path.
 
 <img src="https://raw.githubusercontent.com/theluckystrike/secret-parcel/HEAD/docs/backups.png" alt="Encrypted backup checklist with a retention limit" width="720">
 

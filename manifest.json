@@ -1,7 +1,7 @@
 {
 	"id": "secret-parcel",
 	"name": "Secret Parcel",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"minAppVersion": "1.11.4",
 	"description": "Move selected keychain secrets to another device in one passphrase-encrypted file.",
 	"author": "Michael Lip",
