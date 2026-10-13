@@ -14,7 +14,7 @@ export default class SecretParcelPlugin extends Plugin {
  get storage(): Storage { return this.app.secretStorage; }
  async onload(): Promise<void> {
   this.prefs = normalizeSettings(await this.loadData() as Partial<SecretParcelSettings> | null);
-  const pro = createGitHubSponsors(this.app, this.manifest.id, SPONSORS); pro.init(); this.pro = pro; bindPro(pro);
+  const pro = createGitHubSponsors(this.app, this.manifest.id, SPONSORS, this); pro.init(); this.pro = pro; bindPro(pro);
   this.addSettingTab(new SecretParcelSettingTab(this.app, this));
   this.addCommand({ id: 'export-secrets', name: 'Export secrets', callback: () => this.openExport() });
   this.addCommand({ id: 'import-parcel', name: 'Import parcel', callback: () => this.openImport(false) });

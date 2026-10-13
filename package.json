@@ -1,6 +1,6 @@
 {
 	"name": "secret-parcel",
-	"version": "1.0.1",
+	"version": "1.0.2",
 	"private": true,
 	"description": "Move selected keychain secrets to another device in one passphrase-encrypted file.",
 	"main": "main.js",
