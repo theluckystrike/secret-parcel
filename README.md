@@ -64,6 +64,8 @@ Secret IDs can be shared across vaults on mobile in some configurations. Check t
 
 ## Settings
 
+After a minor or major update, this plugin opens one What's new tab in the background. The tab and settings card suggest other NoteMods plugins and Zovo Chat and link to notemods.com for feedback ([privacy](https://notemods.com/privacy/)). The tab sends no data. Turn the tab off in Settings.
+
 Export folder sets the starting folder for exports. The export modal lets you change it for one run. Hidden folders and relative path segments are refused. Backup retention sets the number of tracked Pro backups to keep. Manage profiles opens the Pro profile manager. The Pro account rows provide sign in, refresh and sign out. Settings keep folder names, profile prefixes, profile names and tracked backup paths locally in the vault's plugin data.
 
 <img src="https://raw.githubusercontent.com/theluckystrike/secret-parcel/HEAD/docs/settings.png" alt="Folder retention profiles and optional Pro account rows" width="720">

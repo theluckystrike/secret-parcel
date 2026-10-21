@@ -5,6 +5,8 @@ import { PRO_LABEL, SPONSORS, bindPro, isPro, resetPro } from './pro';
 import { DEFAULT_SETTINGS, SecretParcelSettingTab, normalizeSettings, type Profile, type SecretParcelSettings } from './settings';
 import { checkPassphrase, encrypt, decrypt, validatePayload, folderPath, fileStamp, MAX_FILE, compare, type Report, type Payload, type Storage } from './parcel';
 import { ExportModal, ParcelPicker, ProfilesModal, ImportPreview, TextReport, showReport } from './ui';
+import { setupHello } from './hello/index';
+import WHATS_NEW from './whats-new.json';
 export default class SecretParcelPlugin extends Plugin {
  prefs: SecretParcelSettings = normalizeSettings(DEFAULT_SETTINGS);
  pro: SponsorsManager | null = null;
@@ -13,6 +15,8 @@ export default class SecretParcelPlugin extends Plugin {
  private busy = false;
  get storage(): Storage { return this.app.secretStorage; }
  async onload(): Promise<void> {
+  // First: "What's new" reads its state before the settings load (packages/hello). It does not wait.
+  setupHello(this, WHATS_NEW);
   this.prefs = normalizeSettings(await this.loadData() as Partial<SecretParcelSettings> | null);
   const pro = createGitHubSponsors(this.app, this.manifest.id, SPONSORS, this); pro.init(); this.pro = pro; bindPro(pro);
   this.addSettingTab(new SecretParcelSettingTab(this.app, this));

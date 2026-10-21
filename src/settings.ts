@@ -3,6 +3,7 @@ import { PluginSettingTab as LegacySettingTab, Setting } from 'obsidian';
 import { fillGetProSetting, fillAccountSetting } from './sponsors-adapter';
 import { PRO_LABEL, PRO_UI } from './pro';
 import type SecretParcelPlugin from './main';
+import { renderHelloSettings } from './hello/index';
 export interface Profile { name: string; prefix: string; folder: string }
 export interface SecretParcelSettings { folder: string; keep: number; profiles: Profile[]; backups: string[] }
 export const DEFAULT_SETTINGS: SecretParcelSettings = { folder: 'Secret Parcels', keep: 5, profiles: [], backups: [] };
@@ -23,6 +24,7 @@ export class SecretParcelSettingTab extends LegacySettingTab {
   new Setting(this.containerEl).setName(`Saved export profiles (${PRO_LABEL})`).setDesc('Save a name, ID prefix and folder. Passphrases are not saved.').addButton(b => b.setButtonText('Manage profiles').onClick(() => this.plugin.openProfiles()));
   new Setting(this.containerEl).setName('Pro').setHeading();
   if (this.plugin.pro) { fillGetProSetting(new Setting(this.containerEl), this.plugin.pro, PRO_UI); this.stop = fillAccountSetting(new Setting(this.containerEl), this.plugin.pro, PRO_UI); }
+  renderHelloSettings(this.containerEl);
  }
  hide(): void { this.stop?.(); this.stop = null; }
 }
