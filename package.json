@@ -1,5 +1,6 @@
 {
 	"name": "secret-parcel",
+	"repository": {"type": "git", "url": "theluckystrike/secret-parcel.git"},
 	"version": "1.1.0",
 	"private": true,
 	"description": "Move selected keychain secrets to another device in one passphrase-encrypted file.",
