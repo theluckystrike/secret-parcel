@@ -77,7 +77,8 @@ export function localSponsorsStore(app: App, pluginId: string): SponsorsStateSto
  * owner is the plugin: its unload disposes the manager, so a sign-in poll or a check never outlives the plugin.
  */
 export function createGitHubSponsors(app: App, pluginId: string, config: SponsorsConfig, owner: Pick<Component, 'register'>): SponsorsManager {
-	const pro = new SponsorsManager({ config, http: githubRequestClient, tokens: secretTokenStore(app, pluginId), store: localSponsorsStore(app, pluginId) });
+	// The plugin id goes into the Sponsor URL as metadata_source, so a payment from this plugin can be attributed.
+	const pro = new SponsorsManager({ config: { ...config, source: config.source ?? pluginId }, http: githubRequestClient, tokens: secretTokenStore(app, pluginId), store: localSponsorsStore(app, pluginId) });
 	owner.register(() => pro.dispose());
 	return pro;
 }
@@ -117,8 +118,55 @@ async function copyText(text: string): Promise<boolean> {
 	}
 }
 
-/** Fills the "Get Pro" row: what Pro adds, the price and the Sponsor button. */
+// Copies of proNoticeKind, proNeededText, showProNotice and fillGetProSetting of packages/license/src/github-obsidian.ts.
+// This product keeps its own adapter because the shared module uses Obsidian 1.13 APIs and minAppVersion here is 1.11.4.
+
+/** What a Pro gate may tell this user (same rule as the shared module): none, recheck or pitch. */
+export type ProNoticeKind = 'none' | 'recheck' | 'pitch';
+
+export function proNoticeKind(pro: SponsorsManager): ProNoticeKind {
+	if (pro.isPro()) return 'none';
+	const status = pro.getState().status;
+	if (!pro.hasToken()) return 'pitch';
+	if (status === 'pro') return 'recheck';
+	if (status === 'unchecked' && (pro.isChecking() || pro.getState().lastAttemptAt === 0)) return 'recheck';
+	return 'pitch';
+}
+
+export const PRO_PITCH_TEXT = 'Sponsor on GitHub, then sign in from the plugin settings.';
+export const PRO_RECHECK_TEXT = 'To check your sponsorship again, select Refresh in the plugin settings.';
+export const PRO_FAILED_CHECK_TEXT = 'If you already sponsor, select Refresh in the plugin settings.';
+
+/** The text for a Pro gate: the lead, then the next step for this user. */
+export function proNeededText(pro: SponsorsManager | null, lead: string): string {
+	const kind = pro ? proNoticeKind(pro) : 'pitch';
+	if (kind === 'none') return lead;
+	if (kind === 'recheck') return `${lead} ${PRO_RECHECK_TEXT}`;
+	const failed = !!pro && pro.hasToken() && pro.getState().status === 'unchecked';
+	return failed ? `${lead} ${PRO_PITCH_TEXT} ${PRO_FAILED_CHECK_TEXT}` : `${lead} ${PRO_PITCH_TEXT}`;
+}
+
+/** Shows the Pro gate notice. A free user gets a "Sponsor on GitHub" button with metadata_source. */
+export function showProNotice(pro: SponsorsManager | null, lead: string): Notice | null {
+	if (pro && proNoticeKind(pro) === 'none') return null;
+	const text = proNeededText(pro, lead);
+	if (!pro || proNoticeKind(pro) !== 'pitch') return new Notice(text);
+	const url = sponsorUrl(pro.config);
+	const fragment = createFragment((f) => {
+		f.createSpan({ text });
+		const button = f.createDiv().createEl('button', { text: 'Sponsor on GitHub', cls: 'mod-cta pf-pro-notice-sponsor' });
+		button.addEventListener('click', () => openUrl(url));
+	});
+	return new Notice(fragment, 10000);
+}
+
+/** Fills the "Get Pro" row. A user who may sponsor gets no pitch. */
 export function fillGetProSetting(setting: Setting, pro: SponsorsManager, ui: SponsorsUiOptions): void {
+	if (proNoticeKind(pro) !== 'pitch') {
+		setting.setName('Pro');
+		setting.setDesc(ui.proSummary);
+		return;
+	}
 	setting.setName('Get pro');
 	setting.setDesc(`${ui.proSummary} ${ui.priceText} Sponsor on GitHub, then sign in below with the same GitHub account.`);
 	setting.addButton((b) =>

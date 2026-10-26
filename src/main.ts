@@ -1,7 +1,7 @@
 import { Notice, Plugin, normalizePath, type Modal, type TFile } from 'obsidian';
 import type { SponsorsManager } from './license/index';
 import { createGitHubSponsors } from './sponsors-adapter';
-import { PRO_LABEL, SPONSORS, bindPro, isPro, resetPro } from './pro';
+import { PRO_LABEL, SPONSORS, bindPro, isPro, resetPro, proNotice } from './pro';
 import { DEFAULT_SETTINGS, SecretParcelSettingTab, normalizeSettings, type Profile, type SecretParcelSettings } from './settings';
 import { checkPassphrase, encrypt, decrypt, validatePayload, folderPath, fileStamp, MAX_FILE, compare, type Report, type Payload, type Storage } from './parcel';
 import { ExportModal, ParcelPicker, ProfilesModal, ImportPreview, TextReport, showReport } from './ui';
@@ -29,7 +29,7 @@ export default class SecretParcelPlugin extends Plugin {
  }
  onunload(): void { this.closeDialogs(); resetPro(); }
  async saveSettings(): Promise<void> { await this.saveData(this.prefs); }
- needsPro(): boolean { if (isPro()) return false; new Notice('This is a pro feature. Sponsor on GitHub, then sign in from the plugin settings.'); return true; }
+ needsPro(): boolean { if (isPro()) return false; proNotice('This is a pro feature.'); return true; }
  openExport(backup = false, prefix = '', folder = this.prefs.folder): void {
   if (backup && this.needsPro()) return;
   try { const ids = this.storage.listSecrets(); if (!ids.length) { new Notice('The keychain has no secrets.'); return; } new ExportModal(this, ids, backup, prefix, folder).open(); }
