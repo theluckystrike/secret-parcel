@@ -2,7 +2,7 @@
 // device-local state, the "Get Pro" settings rows and a Pro guard.
 // Products import it as the ./github-obsidian entry of this package.
 import { Notice, requestUrl, type App, type Component, type RequestUrlResponsePromise, type Setting } from 'obsidian';
-import { ACCESS_TOKEN_URL, DEVICE_CODE_URL, GRAPHQL_URL, sponsorUrl, type DeviceCode, type SponsorsConfig } from './license/index';
+import { ACCESS_TOKEN_URL, COPY_TAG, DEVICE_CODE_URL, GRAPHQL_URL, sponsorUrl, type DeviceCode, type SponsorsConfig } from './license/index';
 import { SponsorsManager, type SponsorsState, type SponsorsStateStore, type TokenStore } from './license/index';
 import type { HttpClient, HttpRequest, HttpResponse } from './license/index';
 
@@ -133,7 +133,9 @@ export function proNoticeKind(pro: SponsorsManager): ProNoticeKind {
 	return 'pitch';
 }
 
-export const PRO_PITCH_TEXT = 'Sponsor on GitHub, then sign in from the plugin settings.';
+/** The catalog sentence of the shared module. One payment to the seller turns on Pro in each NoteMods plugin. */
+export const CATALOG_TEXT = 'One payment turns on Pro in every NoteMods plugin.';
+export const PRO_PITCH_TEXT = `${CATALOG_TEXT} Sponsor on GitHub, then sign in from the plugin settings.`;
 export const PRO_RECHECK_TEXT = 'To check your sponsorship again, select Refresh in the plugin settings.';
 export const PRO_FAILED_CHECK_TEXT = 'If you already sponsor, select Refresh in the plugin settings.';
 
@@ -151,7 +153,7 @@ export function showProNotice(pro: SponsorsManager | null, lead: string): Notice
 	if (pro && proNoticeKind(pro) === 'none') return null;
 	const text = proNeededText(pro, lead);
 	if (!pro || proNoticeKind(pro) !== 'pitch') return new Notice(text);
-	const url = sponsorUrl(pro.config);
+	const url = sponsorUrl(pro.config, COPY_TAG);
 	const fragment = createFragment((f) => {
 		f.createSpan({ text });
 		const button = f.createDiv().createEl('button', { text: 'Sponsor on GitHub', cls: 'mod-cta pf-pro-notice-sponsor' });
@@ -168,12 +170,12 @@ export function fillGetProSetting(setting: Setting, pro: SponsorsManager, ui: Sp
 		return;
 	}
 	setting.setName('Get pro');
-	setting.setDesc(`${ui.proSummary} ${ui.priceText} Sponsor on GitHub, then sign in below with the same GitHub account.`);
+	setting.setDesc(`${ui.proSummary} ${ui.priceText} ${CATALOG_TEXT} Sponsor on GitHub, then sign in below with the same GitHub account.`);
 	setting.addButton((b) =>
 		b
 			.setButtonText('Sponsor on GitHub')
 			.setCta()
-			.onClick(() => openUrl(sponsorUrl(pro.config))),
+			.onClick(() => openUrl(sponsorUrl(pro.config, COPY_TAG))),
 	);
 }
 

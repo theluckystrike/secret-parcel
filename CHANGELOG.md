@@ -1,5 +1,11 @@
 # secret-parcel
 
+## 1.1.3
+
+### Patch Changes
+
+- The Pro notice of Secret Parcel now says that one payment turns on Pro in every NoteMods plugin.
+
 ## 1.1.2
 
 ### Patch Changes
